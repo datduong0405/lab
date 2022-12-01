@@ -1,11 +1,15 @@
 package com.hmh.lab.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -24,6 +28,7 @@ public class Laboratory extends Base {
             mappedBy = "laboratory",
             cascade = CascadeType.ALL
     )
+    @JsonIgnore
     private List<Reservation> users = new ArrayList<>();
 
 
@@ -32,6 +37,7 @@ public class Laboratory extends Base {
     private User user;
 
     @ManyToMany
+    @JsonIgnore
     @JoinTable(
             name = "lab_equipment",
             joinColumns = @JoinColumn(name = "lab_id"),
@@ -40,5 +46,10 @@ public class Laboratory extends Base {
     @ToString.Exclude
     private Set<Equipment> equipments;
 
+    @OneToMany(
+            mappedBy = "laboratory"
+    )
+    @JsonIgnore
+    private Set<Reservation> reservations = new HashSet<>();
 
 }

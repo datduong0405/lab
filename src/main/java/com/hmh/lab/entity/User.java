@@ -1,5 +1,7 @@
 package com.hmh.lab.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.NaturalId;
@@ -7,7 +9,9 @@ import org.hibernate.annotations.NaturalIdCache;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -53,5 +57,12 @@ public class User extends Base {
             mappedBy = "user",
             cascade = CascadeType.ALL
     )
+    @JsonIgnore
     private List<Reservation> laboratories = new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "user"
+    )
+    @JsonIgnore
+    private Set<Reservation> reservations = new HashSet<>();
 }

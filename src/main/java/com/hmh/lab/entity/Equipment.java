@@ -1,5 +1,6 @@
 package com.hmh.lab.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.Column;
@@ -22,8 +23,11 @@ public class Equipment extends Base {
     @Column(name = "type")
     private String type;
 
-    @Column(name = "staus")
+    @Column(name = "status")
     private String status;
     @ManyToMany(mappedBy = "equipments")
+    @JsonIgnore
     private Set<Laboratory> laboratories;
+
+
 }

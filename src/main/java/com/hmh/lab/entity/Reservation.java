@@ -1,5 +1,6 @@
 package com.hmh.lab.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -9,15 +10,19 @@ import java.util.Date;
 @Entity
 @Table(name = "reservation")
 public class Reservation {
-    @EmbeddedId
-    private UserLabId id;
+    @Id
+    @GeneratedValue
+    @Column(name = "id")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("user_id")
+    @JsonIgnore
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("laboratory_id")
+    @JsonIgnore
+    @JoinColumn(name = "laboratory_id")
     private Laboratory laboratory;
 
     @Column(name = "start_date")
@@ -28,13 +33,4 @@ public class Reservation {
 
     @Column(name = "status")
     private String status;
-
-    private Reservation(){}
-
-    private Reservation(User user, Laboratory laboratory){
-        this.user = user;
-        this.laboratory = laboratory;
-        this.id = new UserLabId(user.getId(), laboratory.getId());
-    }
-
 }
