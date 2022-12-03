@@ -4,7 +4,7 @@ public interface EquipAndLabs {
     Long getId();
     String getName();
     String getDescription();
-    String getQuantity();
+    String getState();
     String getStatus();
     String getType();
     String getLabName();

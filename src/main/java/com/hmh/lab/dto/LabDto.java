@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class LabDto {
@@ -13,5 +14,5 @@ public class LabDto {
     private Date createdDate;
     private Date mofifiedDate;
     private String user;
-    private List<Long> equipmentList;
+    private Set<Long> equipmentList;
 }

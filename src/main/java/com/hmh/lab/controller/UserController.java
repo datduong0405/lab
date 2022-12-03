@@ -1,11 +1,9 @@
 package com.hmh.lab.controller;
 
-import com.hmh.lab.dto.EquipDto;
-import com.hmh.lab.dto.LabDto;
-import com.hmh.lab.dto.ResDto;
-import com.hmh.lab.dto.UserDto;
+import com.hmh.lab.dto.*;
 import com.hmh.lab.entity.*;
 import com.hmh.lab.repository.*;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,16 +11,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/lab/user")
 @CrossOrigin(origins = "*")
 public class UserController {
 
+    private final ModelMapper modelMapper;
+
+    @Autowired
+    EquipmentTypeRepository equipmentTypeRepository;
     @Autowired
     UserRepository userRepository;
 
@@ -39,6 +39,10 @@ public class UserController {
     ReservationRepository reservationRepository;
 
     Logger logger = LoggerFactory.getLogger(UserController.class);
+
+    public UserController(ModelMapper modelMapper) {
+        this.modelMapper = modelMapper;
+    }
 
     @GetMapping("/")
     public ResponseEntity<?> findAll() {
@@ -81,6 +85,27 @@ public class UserController {
         return ResponseEntity.ok(userRepository.save(user.get()));
     }
 
+    @PatchMapping("/own/edit/{id}")
+    public ResponseEntity<?> myEdit(@PathVariable(name = "id") Long id,
+                                      @RequestBody UserDto userDto) {
+        Optional<User> user = userRepository.findById(id);
+        Instant instant = Instant.now();
+        user.ifPresent(u -> {
+            u.setUsername(userDto.getUsername());
+            u.setPassword(userDto.getPassword());
+            u.setEmail(userDto.getEmail());
+            u.setDepartment(userDto.getDepartment());
+            u.setPhone(userDto.getPhone());
+            u.setFirstName(userDto.getFirstName());
+            u.setLastName(userDto.getLastName());
+            u.setStatus(userDto.getStatus());
+            u.setModifiedDate(Date.from(instant));
+        });
+
+
+        return ResponseEntity.ok(userRepository.save(user.get()));
+    }
+
     @PostMapping("/create")
     public ResponseEntity<?> createUser(@RequestBody UserDto userDto) {
 
@@ -108,7 +133,6 @@ public class UserController {
     public ResponseEntity<?> findAllLab() {
         return ResponseEntity.ok(labRepository.findAll());
     }
-
     @DeleteMapping("/laboratory/delete/{id}")
     public void deleteLab(@PathVariable(name = "id") Long id) {
         labRepository.delete(labRepository.findById(id).get());
@@ -154,6 +178,14 @@ public class UserController {
 
     }
 
+    @GetMapping("/laboratory/labadmin/{id}")
+    public ResponseEntity<?> getLabByAdmin(@PathVariable(name = "id") Long id){
+        User user = userRepository.findById(id).get();
+        return ResponseEntity.ok(labRepository.findAllByUser(user));
+
+    }
+
+
     @PatchMapping("/laboratory/addEquipment/{id}")
     public ResponseEntity<?> addEquipmentToLab(@PathVariable(name = "id") Long id,
                                                @RequestBody LabDto labDto) {
@@ -161,7 +193,8 @@ public class UserController {
         Instant instant = Instant.now();
         Optional<Laboratory> lab = labRepository.findById(id);
         lab.ifPresent(l -> {
-            l.setEquipments((Set<Equipment>) equipmentList);
+            l.getEquipments().clear();
+            l.setEquipments(equipmentList);
             l.setModifiedDate(Date.from(instant));
         });
 
@@ -169,11 +202,24 @@ public class UserController {
         return ResponseEntity.ok(labRepository.save(lab.get()));
     }
 
+    @GetMapping("/equipment/available")
+    public ResponseEntity<?> getALlAvailableEquip(){
+        return ResponseEntity.ok(equipmentRepository.getALlEquipAvailable());
+    }
+    @GetMapping("/equipment/using/{id}")
+    public ResponseEntity<?> getAllEquipUsing(@PathVariable(name = "id") Long id){
+        return ResponseEntity.ok(equipmentRepository.getAllEquipUsing(id));
+    }
     @GetMapping("/equipment")
     public ResponseEntity<?> findAllEuip() {
         return ResponseEntity.ok(equipmentRepository.findAll());
     }
 
+
+    @GetMapping("/etype")
+    public ResponseEntity<?> findAllType(){
+        return ResponseEntity.ok(equipmentTypeRepository.findAll());
+    }
 
     @DeleteMapping("/equipment/delete/{id}")
     public void deleteEquip(@PathVariable(name = "id") Long id) {
@@ -192,13 +238,19 @@ public class UserController {
         Equipment equipment = new Equipment();
         Instant instant = Instant.now();
 
-        equipment.setType(equipDto.getType());
+        EquipmentType equipmentType = equipmentTypeRepository.findById(equipDto.getType()).get();
+        equipmentType.setQuantity(equipmentType.getQuantity() + 1);
+
+        equipment.setState(equipDto.getState());
+
+        equipment.setEquipmentType(equipmentType);
         equipment.setStatus(equipDto.getStatus());
         equipment.setName(equipDto.getName());
-        equipment.setQuantity(equipDto.getQuantity());
+
         equipment.setDescription(equipDto.getDescription());
         equipment.setCreatedDate(Date.from(instant));
 
+        equipmentTypeRepository.save(equipmentType);
         Equipment created = equipmentRepository.save(equipment);
 
         return ResponseEntity.ok(created);
@@ -209,13 +261,13 @@ public class UserController {
                                        @RequestBody EquipDto equipDto) {
 
         Equipment equipment = equipmentRepository.findById(id).get();
-
+        EquipmentType equipmentType = equipmentTypeRepository.findById(equipDto.getType()).get();
         Instant instant = Instant.now();
 
-        equipment.setType(equipDto.getType());
+        equipment.setState(equipDto.getState());
+        equipment.setEquipmentType(equipmentType);
         equipment.setStatus(equipDto.getStatus());
         equipment.setName(equipDto.getName());
-        equipment.setQuantity(equipDto.getQuantity());
         equipment.setDescription(equipDto.getDescription());
         equipment.setModifiedDate(Date.from(instant));
 
@@ -235,10 +287,18 @@ public class UserController {
         return ResponseEntity.ok(reservationRepository.getTeacherUsingLabs(id));
     }
 
+    @GetMapping("/test")
+    public List<BaseDto> test() {
+        return userRepository.findAll().stream().map(user -> modelMapper.map(user, BaseDto.class)).collect(Collectors.toList());
+    }
+
     @PostMapping("/reservation/create")
     public ResponseEntity<?> createRes(@RequestBody ResDto resDto) {
 
         logger.info("res dto: {}", resDto);
+
+        Date startDate = new Date(resDto.getStartDate()*1000L);
+        Date endDate = new Date(resDto.getEndDate()*1000L);
         User user = userRepository.findById(Long.parseLong(resDto.getUserId())).get();
         Laboratory lab = labRepository.findById(Long.parseLong(resDto.getLabId())).get();
 
@@ -250,12 +310,17 @@ public class UserController {
         res.setStatus("NEW");
         res.setUser(user);
         res.setLaboratory(lab);
-        res.setStart_date(resDto.getStartDate());
-        res.setEnd_date(resDto.getEndDate());
+        res.setStart_date(startDate);
+        res.setEnd_date(endDate);
 
         Reservation newRes = reservationRepository.save(res);
 
         return ResponseEntity.ok(newRes);
 
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<?> getHistory(){
+        return ResponseEntity.ok(labRepository.getHistory());
     }
 }

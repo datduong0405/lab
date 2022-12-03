@@ -16,9 +16,25 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
             ",e.description as description" +
             ",e.status as status" +
             ",e.type as type" +
-            ",e.quantity as quantity" +
-            ",group_concat(la.name separator ', ') as labName FROM equipment e  left join lab_equipment l on e.id = l.equip_id left join laboratory la on l.lab_id = la.id group by e.id", nativeQuery = true)
+            ",e.state as state" +
+            ",la.name as labName FROM equipment e  " +
+            "left join lab_equipment l on e.id = l.equip_id " +
+            "left join laboratory la on l.lab_id = la.id", nativeQuery = true)
     List<EquipAndLabs> getEquipmentInLabs();
+
+    @Query(value = "select equipment.* from  equipment\n" +
+            "        inner join lab_equipment on equipment.id = lab_equipment.equip_id\n" +
+            "        inner join laboratory on laboratory.id = lab_equipment.lab_id\n" +
+            "        where laboratory.id =:id", nativeQuery = true)
+    List<Equipment> getAllEquipUsing(@Param("id") Long id);
+
+    @Query(value = "select * from  equipment where id not in ( select equip_id from lab_equipment)", nativeQuery = true)
+    List<Equipment> getALlEquipAvailable();
+
+
+
+
+
 
 
 }

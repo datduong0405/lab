@@ -44,7 +44,7 @@ public class Laboratory extends Base {
             inverseJoinColumns = @JoinColumn(name = "equip_id"))
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Set<Equipment> equipments;
+    private List<Equipment> equipments;
 
     @OneToMany(
             mappedBy = "laboratory"

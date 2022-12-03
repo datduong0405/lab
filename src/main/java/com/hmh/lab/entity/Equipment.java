@@ -3,10 +3,7 @@ package com.hmh.lab.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Set;
 
 @Entity
@@ -15,19 +12,20 @@ import java.util.Set;
 public class Equipment extends Base {
     @Column
     private String name;
-    @Column
-    private int quantity;
+
     @Column
     private String description;
 
-    @Column(name = "type")
-    private String type;
-
     @Column(name = "status")
     private String status;
+    private String state;
     @ManyToMany(mappedBy = "equipments")
     @JsonIgnore
     private Set<Laboratory> laboratories;
+
+    @ManyToOne
+    @JoinColumn(name = "type", referencedColumnName = "id")
+    private EquipmentType equipmentType;
 
 
 }
