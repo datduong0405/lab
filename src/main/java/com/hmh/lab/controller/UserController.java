@@ -8,16 +8,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/lab/user")
 @CrossOrigin(origins = "*")
-public class UserController {
+public class
+
+UserController {
 
     private final ModelMapper modelMapper;
 
@@ -87,7 +92,7 @@ public class UserController {
 
     @PatchMapping("/own/edit/{id}")
     public ResponseEntity<?> myEdit(@PathVariable(name = "id") Long id,
-                                      @RequestBody UserDto userDto) {
+                                    @RequestBody UserDto userDto) {
         Optional<User> user = userRepository.findById(id);
         Instant instant = Instant.now();
         user.ifPresent(u -> {
@@ -133,6 +138,7 @@ public class UserController {
     public ResponseEntity<?> findAllLab() {
         return ResponseEntity.ok(labRepository.findAll());
     }
+
     @DeleteMapping("/laboratory/delete/{id}")
     public void deleteLab(@PathVariable(name = "id") Long id) {
         labRepository.delete(labRepository.findById(id).get());
@@ -179,7 +185,7 @@ public class UserController {
     }
 
     @GetMapping("/laboratory/labadmin/{id}")
-    public ResponseEntity<?> getLabByAdmin(@PathVariable(name = "id") Long id){
+    public ResponseEntity<?> getLabByAdmin(@PathVariable(name = "id") Long id) {
         User user = userRepository.findById(id).get();
         return ResponseEntity.ok(labRepository.findAllByUser(user));
 
@@ -203,13 +209,15 @@ public class UserController {
     }
 
     @GetMapping("/equipment/available")
-    public ResponseEntity<?> getALlAvailableEquip(){
+    public ResponseEntity<?> getALlAvailableEquip() {
         return ResponseEntity.ok(equipmentRepository.getALlEquipAvailable());
     }
+
     @GetMapping("/equipment/using/{id}")
-    public ResponseEntity<?> getAllEquipUsing(@PathVariable(name = "id") Long id){
+    public ResponseEntity<?> getAllEquipUsing(@PathVariable(name = "id") Long id) {
         return ResponseEntity.ok(equipmentRepository.getAllEquipUsing(id));
     }
+
     @GetMapping("/equipment")
     public ResponseEntity<?> findAllEuip() {
         return ResponseEntity.ok(equipmentRepository.findAll());
@@ -217,7 +225,7 @@ public class UserController {
 
 
     @GetMapping("/etype")
-    public ResponseEntity<?> findAllType(){
+    public ResponseEntity<?> findAllType() {
         return ResponseEntity.ok(equipmentTypeRepository.findAll());
     }
 
@@ -287,6 +295,21 @@ public class UserController {
         return ResponseEntity.ok(reservationRepository.getTeacherUsingLabs(id));
     }
 
+    @DeleteMapping("/reservation/delete/{id}")
+    @Transactional
+    public void deleteRes(@PathVariable(name = "id") Long id) {
+        reservationRepository.deleleById(id);
+    }
+
+    @PatchMapping("/reservation/edit/{id}")
+    @Transactional
+    public void editRes(@PathVariable(name = "id") Long id, @RequestBody DateRes dateRes) {
+        Date startDate = new Date(dateRes.getStartDate() * 1000L);
+        Date endDate = new Date(dateRes.getEndDate() * 1000L);
+        reservationRepository.editRes(id, startDate, endDate);
+    }
+
+
     @GetMapping("/test")
     public List<BaseDto> test() {
         return userRepository.findAll().stream().map(user -> modelMapper.map(user, BaseDto.class)).collect(Collectors.toList());
@@ -297,8 +320,8 @@ public class UserController {
 
         logger.info("res dto: {}", resDto);
 
-        Date startDate = new Date(resDto.getStartDate()*1000L);
-        Date endDate = new Date(resDto.getEndDate()*1000L);
+        Date startDate = new Date(resDto.getStartDate() * 1000L);
+        Date endDate = new Date(resDto.getEndDate() * 1000L);
         User user = userRepository.findById(Long.parseLong(resDto.getUserId())).get();
         Laboratory lab = labRepository.findById(Long.parseLong(resDto.getLabId())).get();
 
@@ -320,7 +343,7 @@ public class UserController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<?> getHistory(){
+    public ResponseEntity<?> getHistory() {
         return ResponseEntity.ok(labRepository.getHistory());
     }
 }

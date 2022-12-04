@@ -9,4 +9,5 @@ public interface TeacherUsingLab {
     String getAdmin();
     Date getStartDate();
     Date getEndDate();
+    Long getResId();
 }
