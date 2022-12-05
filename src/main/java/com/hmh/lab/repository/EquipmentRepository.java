@@ -28,7 +28,7 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
             "        where laboratory.id =:id", nativeQuery = true)
     List<Equipment> getAllEquipUsing(@Param("id") Long id);
 
-    @Query(value = "select * from  equipment where id not in ( select equip_id from lab_equipment)", nativeQuery = true)
+    @Query(value = "select * from  equipment where id not in ( select equip_id from lab_equipment) and status = 'AVAILABLE' ", nativeQuery = true)
     List<Equipment> getALlEquipAvailable();
 
 

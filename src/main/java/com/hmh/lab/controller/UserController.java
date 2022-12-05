@@ -2,6 +2,7 @@ package com.hmh.lab.controller;
 
 import com.hmh.lab.dto.*;
 import com.hmh.lab.entity.*;
+import com.hmh.lab.exception.ResourceDeleteException;
 import com.hmh.lab.repository.*;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -229,9 +230,39 @@ UserController {
         return ResponseEntity.ok(equipmentTypeRepository.findAll());
     }
 
+    @PostMapping("/etype/create")
+    public ResponseEntity<?> createType(@RequestBody TypeDto typeDto) {
+        EquipmentType equipmentType = new EquipmentType();
+        equipmentType.setEquipments(null);
+        equipmentType.setId(typeDto.getId());
+        equipmentType.setName(typeDto.getName());
+        equipmentType.setQuantity(0);
+        return ResponseEntity.ok(equipmentTypeRepository.save(equipmentType));
+    }
+
+    @PatchMapping("/etype/edit/{id}")
+    public ResponseEntity<?> editEType(@PathVariable(name = "id") String id, @RequestBody TypeDto typeDto) {
+        EquipmentType equipmentType = equipmentTypeRepository.findById(id).get();
+        equipmentType.setName(typeDto.getName());
+        EquipmentType e = equipmentTypeRepository.save(equipmentType);
+        return ResponseEntity.ok(e);
+    }
+
+    @DeleteMapping("/etype/delete/{id}")
+    public void deleteType(@PathVariable(name = "id") String id) {
+        EquipmentType equipmentType = equipmentTypeRepository.findById(id).get();
+        if (equipmentType.getEquipments().isEmpty()) {
+            equipmentTypeRepository.delete(equipmentType);
+        } else {
+            throw new ResourceDeleteException("Can not delete this type");
+        }
+    }
+
     @DeleteMapping("/equipment/delete/{id}")
     public void deleteEquip(@PathVariable(name = "id") Long id) {
         Optional<Equipment> equipment = equipmentRepository.findById(id);
+        Optional<EquipmentType> equipmentType = equipmentTypeRepository.findById(equipment.get().getEquipmentType().getId());
+        equipmentType.get().setQuantity(equipmentType.get().getQuantity() - 1);
         equipmentRepository.delete(equipment.get());
     }
 
